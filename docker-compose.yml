@@ -14,9 +14,11 @@ services:
       args:
         APP_DIR: apex
     env_file:
-      - apex/.env
+      - .env
     environment:
       STARTUP_DELAY: "0"
+      DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN_MAP}
+      APEX_API_KEY: ${APEX_API_KEY}
 
   apex_daan_bot:
     <<: *bot-base
@@ -27,9 +29,12 @@ services:
       args:
         APP_DIR: apex_daan
     env_file:
-      - apex_daan/.env
+      - .env
     environment:
       STARTUP_DELAY: "10"
+      DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN_DAAN}
+      APEX_API_KEY: ${APEX_API_KEY}
+      PLAYER_UID: ${PLAYER_UID_DAAN}
 
   apex_eben_bot:
     <<: *bot-base
@@ -40,9 +45,12 @@ services:
       args:
         APP_DIR: apex_eben
     env_file:
-      - apex_eben/.env
+      - .env
     environment:
       STARTUP_DELAY: "20"
+      DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN_EBEN}
+      APEX_API_KEY: ${APEX_API_KEY}
+      PLAYER_UID: ${PLAYER_UID_EBEN}
 
   apex_nino_bot:
     <<: *bot-base
@@ -53,6 +61,9 @@ services:
       args:
         APP_DIR: apex_nino
     env_file:
-      - apex_nino/.env
+      - .env
     environment:
       STARTUP_DELAY: "30"
+      DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN_NINO}
+      APEX_API_KEY: ${APEX_API_KEY}
+      PLAYER_UID: ${PLAYER_UID_NINO}
