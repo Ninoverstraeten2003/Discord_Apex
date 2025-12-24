@@ -43,6 +43,7 @@ class ApexMapBot(discord.Client):
         self.rotation_end_time = 0 
         self.next_map_name = "Unknown"
         self.current_map_name = "Unknown"
+        self.last_status_message = None
 
     async def setup_hook(self):
         self.update_presence_task.start()
@@ -51,12 +52,14 @@ class ApexMapBot(discord.Client):
         logging.info(f'Logged in as {self.user} (ID: {self.user.id})')
         logging.info(f'Connected to {len(self.guilds)} servers.')
 
-    def get_time_remaining(self):
+    def get_time_remaining(self, reference_time: int = None):
         """Calculates minutes remaining."""
-        now = int(time.time())
-        remaining_seconds = self.rotation_end_time - now
-        if remaining_seconds < 0: return 0
-        return int(remaining_seconds / 60)
+        if reference_time is None:
+            reference_time = int(time.time())
+        remaining_seconds = self.rotation_end_time - reference_time
+        if remaining_seconds < 0:
+            return 0
+        return remaining_seconds // 60
 
     @tasks.loop(seconds=60)
     async def update_presence_task(self):
@@ -70,17 +73,19 @@ class ApexMapBot(discord.Client):
                 await self.fetch_and_update_api()
 
             # === 1. UPDATE STATUS (Bottom Line) ===
-            minutes_left = self.get_time_remaining()
+            minutes_left = self.get_time_remaining(reference_time=now)
             
             # Status: "Ends in 1h 15m » Next: Storm Point"
-            hours = minutes_left // 60
-            minutes = minutes_left % 60
+            hours, minutes = divmod(minutes_left, 60)
             if hours > 0:
                 status_message = f"Ends in {hours}h {minutes}m » Next: {self.next_map_name}"
             else:
                 status_message = f"Ends in {minutes}m » Next: {self.next_map_name}"
-            await self.change_presence(activity=discord.Game(name=status_message))
-            logging.info(f"Status Updated: {status_message}")
+
+            if status_message != self.last_status_message:
+                await self.change_presence(activity=discord.Game(name=status_message))
+                logging.info(f"Status Updated: {status_message}")
+                self.last_status_message = status_message
 
         except Exception as e:
             logging.error(f"Error in main loop: {e}", exc_info=True)
