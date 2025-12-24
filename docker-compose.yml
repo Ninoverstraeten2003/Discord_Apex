@@ -2,7 +2,7 @@ version: "3.9"
 
 x-bot-base: &bot-base
   init: true
-  restart: unless-stopped
+  restart: on-failure:3
 
 services:
   apex_map_bot:
@@ -23,9 +23,10 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        APP_DIR: apex_daan
+        APP_DIR: apex_player
     environment:
       STARTUP_DELAY: "10"
+      PLAYER_NAME: "DAAN"
 
   apex_eben_bot:
     <<: *bot-base
@@ -34,9 +35,10 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        APP_DIR: apex_eben
+        APP_DIR: apex_player
     environment:
       STARTUP_DELAY: "20"
+      PLAYER_NAME: "EBEN"
 
   apex_nino_bot:
     <<: *bot-base
@@ -45,6 +47,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        APP_DIR: apex_nino
+        APP_DIR: apex_player
     environment:
       STARTUP_DELAY: "30"
+      PLAYER_NAME: "NINO"
