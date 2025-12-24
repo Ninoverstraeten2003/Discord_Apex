@@ -5,19 +5,13 @@ import logging
 import os
 import sys
 import io
-import time
 from datetime import datetime
 from dotenv import load_dotenv
 from PIL import Image
 
 # ================= CONFIGURATION =================
 # How often to check stats (in seconds)
-STATS_CHECK_INTERVAL = 3600  # 1 hour
-
-# How often to update the Avatar (in seconds)
-# Discord has strict rate limits on profile pic changes. 
-# 86400 seconds = 24 Hours.
-AVATAR_UPDATE_INTERVAL = 86400 
+STATS_CHECK_INTERVAL = 43200  # 12 hours
 
 # Logging Setup
 logging.basicConfig(
@@ -47,7 +41,6 @@ class ApexPlayerBot(discord.Client):
         super().__init__(intents=intents)
         
         # Internal Memory
-        self.last_avatar_update = 0
         self.last_known_name = None
         self.last_known_score = None
 
@@ -82,7 +75,8 @@ class ApexPlayerBot(discord.Client):
                         status_text = f"{rank_name} {rank_div} - {rank_score:,} RP"
                         
                         # Only update if score changed to avoid spamming Discord API
-                        if status_text != self.last_known_score:
+                        score_changed = status_text != self.last_known_score
+                        if score_changed:
                             await self.change_presence(activity=discord.Game(name=status_text))
                             logging.info(f"Status Updated: {status_text}")
                             self.last_known_score = status_text
@@ -94,12 +88,10 @@ class ApexPlayerBot(discord.Client):
                             self.last_known_name = player_name
 
                         # === 4. UPDATE AVATAR (Rank Badge) ===
-                        # Checked every loop, but only executed if AVATAR_UPDATE_INTERVAL passed
-                        now = time.time()
-                        if rank_img_url and (now - self.last_avatar_update > AVATAR_UPDATE_INTERVAL):
-                            logging.info("Daily Avatar Update Triggered...")
+                        # Update avatar when the score changes so rank badge stays in sync
+                        if rank_img_url and score_changed:
+                            logging.info("Score changed; updating avatar to current rank badge...")
                             await self.update_avatar(session, rank_img_url)
-                            self.last_avatar_update = now
 
                     elif response.status == 429:
                         logging.warning("Rate Limit Hit (429). Waiting...")
